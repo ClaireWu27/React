@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from "react";
 import StarRating from "./StarRating";
 import { useMovies } from "./useMovies";
 import { useLocalStorageState } from "./useLocalStorageState";
-import { useKey } from "./useKey";
 const tempMovieData = [
   {
     imdbID: "tt1375666",
@@ -79,14 +78,22 @@ function Search({ query, setQuery }) {
   // });
   //  1.create ref
   const inputEl = useRef(null);
-  useKey('Enter',function (){
-    if (document.activeElement === inputEl.current) return;
-     // console.log(inputEl.current);
-     inputEl.current.focus();
-     setQuery("");
-  })
-  
-  
+  useEffect(
+    function () {
+      function callback(e) {
+        if (document.activeElement === inputEl.current) return;
+        if (e.code === "Enter") {
+          // console.log(inputEl.current);
+          inputEl.current.focus();
+          setQuery("");
+        }
+      }
+
+      document.addEventListener("keydown", callback);
+      return () => document.addEventListener("keydown", callback);
+    },
+    [setQuery]
+  );
   return (
     <input
       className="search"
@@ -205,19 +212,18 @@ function MovieDetail({ selectedId, onCloseMovie, onAddWatched, watched }) {
     [imdbRating]
   );
 
-  // useEffect(function () {
-  //   function callback(e) {
-  //     if (e.code === "Escape") {
-  //       onCloseMovie();
-  //     }
-  //   }
-  //   document.addEventListener("keydown", callback);
-  //   return function () {
-  //     document.removeEventListener("keydown", callback);
-  //   };
-  // });
+  useEffect(function () {
+    function callback(e) {
+      if (e.code === "Escape") {
+        onCloseMovie();
+      }
+    }
+    document.addEventListener("keydown", callback);
+    return function () {
+      document.removeEventListener("keydown", callback);
+    };
+  });
 
-  useKey('Escape',onCloseMovie)
   useEffect(
     function () {
       async function getMovieDetails() {
